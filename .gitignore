@@ -4,3 +4,4 @@ client/dist/
 *.log
 pgdata/
 .claude/
+.local/

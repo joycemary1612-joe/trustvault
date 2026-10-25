@@ -3,7 +3,7 @@
 Everything the problem statement, the instructions page and the challenge mail ask for, and where it stands.
 ✅ done and verified · 🟡 partly done / known gap · ❌ not done
 
-_Last updated: 25 Oct 2026, 2:15 PM IST. Deadline: 6:00 PM IST._
+_Last updated: 25 Oct 2026, 2:35 PM IST. Deadline: 6:00 PM IST._
 
 ## 1. The ten requirements
 
@@ -32,10 +32,10 @@ _Last updated: 25 Oct 2026, 2:15 PM IST. Deadline: 6:00 PM IST._
 
 | Deliverable | Status | Notes |
 |---|---|---|
-| Git repository with history (not one commit) | 🟡 | 10 commits, all on 25 Oct (explained in PROMPTS.md). **Private until 6 PM, then make it public** |
+| Git repository with history (not one commit) | 🟡 | 14 commits, all on 25 Oct (explained in PROMPTS.md). Private now; a Windows task makes it public at 5:55 PM. **Check in incognito at 6 PM** |
 | Live URL with seed data, one login per role in README | ✅ | https://trustvault-76hy.onrender.com |
-| `THREATS.md`: threats, what was done, what was accepted and why | ✅ | 40+ entries in 7 groups, each with status and test |
-| `PROMPTS.md`: ≥ 5 dated entries, ≥ 2 on authorisation/access/audit, with commit links | ✅ | 6 entries, 4 on auth/access/audit, all linked |
+| `THREATS.md`: threats, what was done, what was accepted and why | ✅ | 63 entries in 8 groups (A–H), each with status, test and accepted risks |
+| `PROMPTS.md`: ≥ 5 dated entries, ≥ 2 on authorisation/access/audit, with commit links | ✅ | 7 entries, 5 on auth/access/audit, all linked to commits |
 | `PROMPTS.md`: reused prompts / context files | ✅ | "Reused context / instructions" section |
 | Automated tests, including cross-user access | ✅ | `npm test` (34) |
 | Database schema and setup scripts | ✅ | `server/src/schema.sql`, `npm run db:setup --prefix server` |
@@ -66,7 +66,7 @@ _Last updated: 25 Oct 2026, 2:15 PM IST. Deadline: 6:00 PM IST._
 - [x] Use AI and document it honestly (PROMPTS.md names the tool and its mistakes)
 - [x] Commit as you go, in your own name
 - [x] Deploy early and test the live link (done; also test on your phone in a private window)
-- [x] Keep PROMPTS.md as you go (6 entries)
+- [x] Keep PROMPTS.md as you go (7 entries)
 - [x] Say honestly what is unfinished (README, WRITEUP, THREATS "Accepted" rows)
 - [x] Tests that really test the checks (mutation check)
 - [ ] Record the 5-minute demo video

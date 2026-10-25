@@ -1,0 +1,18 @@
+# Render blueprint: one web service serves both the API and the built React app.
+services:
+  - type: web
+    name: trustvault
+    runtime: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL     # paste your Neon connection string in the Render dashboard
+        sync: false
+      - key: AUDIT_HMAC_KEY   # random secret; Render generates it
+        generateValue: true

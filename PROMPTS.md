@@ -148,7 +148,7 @@ Then add both checks to the mutation script."
 so the guard matters, and the test checks the exported cell starts with `'=`. The mutation uses `String.raw`. Before
 running, I printed "applies / MISSING" for every mutation against the real source (all 16 apply), then ran the
 full check.
-Commit: _(this entry's commit: "Sharing suggestions and audit CSV export")_
+Commit: [3ab7e80](https://github.com/joycemary1612-joe/trustvault/commit/3ab7e80)
 
 ---
 

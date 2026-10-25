@@ -1,0 +1,13 @@
+{
+  "name": "trustvault",
+  "private": true,
+  "description": "TrustVault - secure document sharing with per-document grants and a tamper-evident audit trail",
+  "scripts": {
+    "install:all": "npm ci --prefix server && npm ci --prefix client --include=dev",
+    "build": "npm run install:all && npm run build --prefix client",
+    "start": "npm start --prefix server",
+    "test": "npm test --prefix server",
+    "mutation-check": "cd server && node scripts/mutation-check.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

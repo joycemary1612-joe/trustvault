@@ -27,5 +27,7 @@ services:
         fromDatabase:
           name: trustvault-db
           property: connectionString   # internal address, never leaves Render's network
+      - key: CLIENT_IP_HEADER
+        value: cf-connecting-ip         # Render's edge (Cloudflare) sets this to the visitor's real IP
       - key: AUDIT_HMAC_KEY
         generateValue: true             # random secret, kept only in the app's environment

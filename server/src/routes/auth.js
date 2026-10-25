@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { audit } from '../audit.js';
 import { HttpError, wrap } from '../errors.js';
 import { createSession, destroySession, destroyAllSessions, requireAuth } from '../session.js';
@@ -18,7 +18,7 @@ export default function authRoutes(db) {
     limit: Number(process.env.LOGIN_RATE_LIMIT || 10),
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => `${req.ip}|${String(req.body?.email ?? '').toLowerCase()}`,
+    keyGenerator: (req) => `${ipKeyGenerator(req.clientIp)}|${String(req.body?.email ?? '').toLowerCase()}`,
     validate: { keyGeneratorIpFallback: false },
     message: { error: 'Too many sign-in attempts. Try again in 15 minutes.' },
   });
@@ -30,6 +30,8 @@ export default function authRoutes(db) {
     limit: Number(process.env.LOGIN_IP_RATE_LIMIT || 50),
     standardHeaders: true,
     legacyHeaders: false,
+    keyGenerator: (req) => ipKeyGenerator(req.clientIp),
+    validate: { keyGeneratorIpFallback: false },
     message: { error: 'Too many sign-in attempts. Try again in 15 minutes.' },
   });
 

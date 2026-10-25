@@ -105,6 +105,27 @@ and 7th get 429) and T-37 (5 guesses at one account with a limit of 3 → 429). 
 **Partial**, because the counters live in memory and a botnet with many IPs is not stopped.
 Commit: _(add link: "Throttle login per IP as well as per account")_
 
+## Entry 6 (25 Oct 2026): the audit trail recorded the proxy's IP, not the person's (audit trail)
+
+**What I asked:** Earlier, "set up Express for deployment on Render" and "record the IP on every audit event".
+
+**What it produced:** `app.set('trust proxy', 1)` with the comment "Render puts one proxy in front of us; req.ip
+is the real client", and `ip: req.ip` in every audit row. Every local test passed.
+
+**What was wrong:** On the live site the admin's audit table showed IPs like `10.29.8.12` and `10.29.58.213` for
+every user. Those are Render's internal proxies: traffic goes through Cloudflare **and** Render's load
+balancers, so there is more than one hop. The record could not show *where* a refused attempt came from. It also
+meant the per-IP login limit counted Render's handful of proxy addresses, so every real user shared one bucket.
+The AI's comment stated an assumption about Render as a fact, and nothing local could have caught it. I only saw
+it by looking at the deployed audit trail.
+
+**What I did instead:** A small middleware sets `req.clientIp` from `CF-Connecting-IP`, the header Render's
+Cloudflare edge sets and overwrites, **only** when the deployment sets `CLIENT_IP_HEADER` (in `render.yaml`).
+Otherwise it falls back to `req.ip`, so locally nobody can choose their own IP. Audit rows and both login
+limiters use `req.clientIp`. Test T-38 checks both cases; on the live site I sent a forged header and checked
+what the audit row recorded.
+Commit: _(add link: "Record the real client IP behind Render's proxies")_
+
 ---
 
 _More entries are added below as I review the code._

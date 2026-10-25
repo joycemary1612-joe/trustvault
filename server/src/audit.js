@@ -37,7 +37,7 @@ export async function audit(db, req, event) {
     outcome: event.outcome ?? 'allowed',
     document_id: event.documentId ?? null,
     target_user_id: event.targetUserId ?? null,
-    ip: req?.ip ?? null,
+    ip: req?.clientIp ?? req?.ip ?? null,
     details: event.details ?? {},
   };
   const payload = JSON.stringify(entry);

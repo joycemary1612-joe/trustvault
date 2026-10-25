@@ -14,8 +14,20 @@ const clientDist = fileURLToPath(new URL('../../client/dist', import.meta.url));
 
 export function createApp(db) {
   const app = express();
-  app.set('trust proxy', 1); // Render puts one proxy in front of us; req.ip is the real client.
+  app.set('trust proxy', 1);
   app.disable('x-powered-by');
+
+  // The visitor's real IP, for the audit trail and login limits. On Render the
+  // request passes Cloudflare and then Render's own proxies, so req.ip is a
+  // 10.x proxy address. Cloudflare puts the real address in CF-Connecting-IP
+  // and overwrites any value a client sends, so we trust that header, but
+  // only when CLIENT_IP_HEADER says this deployment sits behind it.
+  const ipHeader = process.env.CLIENT_IP_HEADER?.toLowerCase();
+  app.use((req, _res, next) => {
+    const fromHeader = ipHeader ? req.get(ipHeader) : undefined;
+    req.clientIp = fromHeader && /^[0-9a-fA-F:.]{3,45}$/.test(fromHeader) ? fromHeader : req.ip;
+    next();
+  });
 
   app.use(helmet({
     contentSecurityPolicy: {

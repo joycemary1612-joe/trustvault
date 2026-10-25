@@ -3,7 +3,7 @@
 A document platform where the wrong person cannot reach a document, and where you can prove who did.
 Built for the Snovasys Fresher Hiring Challenge 2026.
 
-- **Live site:** _LIVE_URL_ (free Render instance: the first request after a quiet spell can take ~50 seconds to wake up)
+- **Live site:** https://trustvault-76hy.onrender.com (free Render instance: the first request after a quiet spell can take ~50 seconds to wake up)
 - **Threat model:** [THREATS.md](THREATS.md)
 - **How I used AI, and where it was wrong:** [PROMPTS.md](PROMPTS.md)
 - **API, with who may call each endpoint:** [API.md](API.md)

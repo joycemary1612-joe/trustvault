@@ -90,13 +90,20 @@ npm run dev --prefix client
 
 Open http://localhost:5173 (Vite forwards `/api` to the server on port 3000).
 
-## Deploy (Render + Neon, both free, no card)
+## Deploy (Render, free, no card)
 
-1. Create a **Neon** project at neon.tech and copy its connection string (`postgresql://...?sslmode=require`).
-2. On **Render**: New → Blueprint → connect this repository. Render reads [`render.yaml`](render.yaml).
-3. When asked, paste the Neon string into `DATABASE_URL`. `AUDIT_HMAC_KEY` is generated for you. Keep it
-   secret and never change it, or old audit rows will no longer verify.
-4. Deploy. On first start the server creates the tables from [`server/src/schema.sql`](server/src/schema.sql) and the demo data.
+1. On **Render**: New → Blueprint → connect this repository (or open
+   `https://render.com/deploy?repo=<this repository's URL>`). Render reads [`render.yaml`](render.yaml).
+2. Click **Apply**. Render creates:
+   - `trustvault-db`: a PostgreSQL database that accepts **no connections from the internet**
+     (`ipAllowList: []`), only from Render services;
+   - `trustvault`: the web service, with `DATABASE_URL` wired to the database's internal address and a
+     generated `AUDIT_HMAC_KEY`. Nobody types or sees a secret. Never change the key later, or old audit rows
+     will no longer verify.
+3. On first start the server creates the tables from [`server/src/schema.sql`](server/src/schema.sql) and the demo data.
+
+Note: Render's free PostgreSQL expires 30 days after it is created. For longer use, switch the database
+plan, or point `DATABASE_URL` at any other PostgreSQL (e.g. Neon).
 
 Manual setup without the blueprint: Web Service, build command `npm run build`, start command `npm start`,
 environment `NODE_ENV=production`, `DATABASE_URL=...`, `AUDIT_HMAC_KEY=<long random string>`.

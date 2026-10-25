@@ -106,7 +106,7 @@ think that is the right trade for confidential documents.
 | G5 | **Plain HTTP.** | Render serves HTTPS only; helmet sends HSTS; cookies are `Secure` in production. | Closed |
 | G6 | **Vulnerable dependencies.** | Few dependencies; `npm audit` reported 0 vulnerabilities when installed. | Partial: no automated dependency updates. |
 | G7 | **Free-tier cold start.** | Render free services sleep after inactivity; the first request can take ~50 seconds. | Accepted: an availability issue, not a confidentiality one. |
-| G8 | **Data at rest.** | Neon encrypts storage at rest. | Partial: file contents are not separately encrypted by the app, so a database operator can read them. |
+| G8 | **Data at rest.** | The database is Render PostgreSQL with no public network access (`ipAllowList: []`); Render encrypts storage at rest. | Partial: file contents are not separately encrypted by the app, so a database operator can read them. |
 
 ---
 

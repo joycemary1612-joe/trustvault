@@ -65,10 +65,3 @@ export async function authorizeDocument(db, req, docId, action, opts = {}) {
   if (level) throw new HttpError(403, 'You do not have permission to do that.');
   throw new HttpError(404, 'Document not found.');
 }
-
-/** SQL fragment: documents this user can read. $1 must be the user id. */
-export const READABLE_DOCS_SQL = `
-  d.deleted_at IS NULL AND (
-    d.owner_id = $1
-    OR EXISTS (SELECT 1 FROM grants g WHERE g.document_id = d.id AND g.user_id = $1)
-  )`;

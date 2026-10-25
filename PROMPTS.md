@@ -6,7 +6,8 @@ Each entry below is something that actually happened while building TrustVault.
 
 **Context:** I could not open the problem statement page (`/project/1` redirected to the event page) until
 the placement cell sent me the text on **25 Oct 2026**, the last day. All the work below happened on that day,
-which is why the commit history covers hours, not a week. I did not back-date anything.
+which is why the commit history covers hours, not a week. I did not back-date anything. Entries 1 to 5 were fixed
+before my first commit, so their links point at the commit that first contains the fixed code.
 
 ---
 
@@ -42,7 +43,7 @@ I only noticed because 14 out of 14 on the first try looked too good.
 **What I did instead:** The script now (1) runs the untouched code first and refuses to continue unless that
 baseline passes, and (2) counts a mutation as caught only if the TAP output shows real tests with `# fail N`
 where N ≥ 1, not just a non-zero exit code.
-Commit: _(add link: "Add mutation check for authorisation tests")_
+Commit: [e5b9c00](https://github.com/joycemary1612-joe/trustvault/commit/e5b9c00) (`server/scripts/mutation-check.mjs`)
 
 ## Entry 2 (25 Oct 2026): a hole in my tests for deactivated users (access control)
 
@@ -58,7 +59,7 @@ surviving.
 
 **What I did instead:** Added test **T-08b**, which deactivates the user directly in the database (no session
 cleanup) and asserts the existing session gets `401`. Re-ran the checker: all 14 mutations caught.
-Commit: _(add link: "Test the is_active session check on its own")_
+Commit: [e5b9c00](https://github.com/joycemary1612-joe/trustvault/commit/e5b9c00) (test T-08b in `server/test/access.test.js`)
 
 ## Entry 3 (25 Oct 2026): test helper used `await` inside a non-async function
 
@@ -73,7 +74,7 @@ file of zero tests.
 
 **What I did instead:** Looked up the user id once before building the list. I now check the test **count**
 (`pass 26`) after every run, not just "no failures".
-Commit: _(add link)_
+Commit: [e5b9c00](https://github.com/joycemary1612-joe/trustvault/commit/e5b9c00)
 
 ## Entry 4 (25 Oct 2026): dependency versions that do not install together
 
@@ -86,7 +87,7 @@ React plugin needs Vite 8.
 
 **What I did instead:** Installed matching latest versions (`vite@8`, `@vitejs/plugin-react@6`) and checked
 `npm view` before pinning anything else.
-Commit: _(add link: "React client")_
+Commit: [72cecde](https://github.com/joycemary1612-joe/trustvault/commit/72cecde)
 
 ## Entry 5 (25 Oct 2026): login rate limit that password spraying walks straight past (authentication)
 
@@ -103,7 +104,7 @@ count?". No test covered it, because the tests set the limit to 1000.
 and two tests that each build their own app with small limits: T-36 (7 different emails from one IP → the 6th
 and 7th get 429) and T-37 (5 guesses at one account with a limit of 3 → 429). In THREATS.md I still mark this
 **Partial**, because the counters live in memory and a botnet with many IPs is not stopped.
-Commit: _(add link: "Throttle login per IP as well as per account")_
+Commit: [e9d4efb](https://github.com/joycemary1612-joe/trustvault/commit/e9d4efb) (limiter in `server/src/routes/auth.js`) and [e5b9c00](https://github.com/joycemary1612-joe/trustvault/commit/e5b9c00) (tests T-36, T-37)
 
 ## Entry 6 (25 Oct 2026): the audit trail recorded the proxy's IP, not the person's (audit trail)
 
@@ -124,7 +125,7 @@ Cloudflare edge sets and overwrites, **only** when the deployment sets `CLIENT_I
 Otherwise it falls back to `req.ip`, so locally nobody can choose their own IP. Audit rows and both login
 limiters use `req.clientIp`. Test T-38 checks both cases; on the live site I sent a forged header and checked
 what the audit row recorded.
-Commit: _(add link: "Record the real client IP behind Render's proxies")_
+Commit: [9371068](https://github.com/joycemary1612-joe/trustvault/commit/9371068)
 
 ---
 

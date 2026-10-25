@@ -22,8 +22,13 @@ The ten requirements, and where each one is:
 6. **Audit trail:** `audit.js`; tests T-20 to T-24.
 7. **Search by name, owner, category, date:** the filter bar; the access rule is always part of the query.
 8. **Upload validation:** extension allow-list plus a check of the file's actual bytes, 5 MB limit, safe filenames.
-9. **Admin view:** overview (refused attempts, downloads, recent permission changes, chain check), full audit search, users.
-10. **Automated tests:** 28 tests, plus a mutation check that removes 14 authorisation checks and proves a test fails each time.
+9. **Admin view:** overview (refused attempts, downloads, recent permission changes, chain check, CSV export), full audit search, users.
+10. **Automated tests:** 34 tests, plus a mutation check that removes 16 authorisation checks and proves a test fails each time.
+
+Beyond the ten: **sharing suggestions** on each document (people you already share similar documents with). They follow
+the brief's rule for AI in the product: the system only suggests, always view-only, a person clicks Share, and the
+suggestion, the grant and any dismissal are all in the audit trail. They are rule-based, not an AI model, so no
+document name or content leaves the system.
 
 ## My permission model, in my own words
 
@@ -49,7 +54,7 @@ document whose id they knew. Test T-02 fails immediately (Victor would get 200 i
 
 - **Folders with inheritance, and groups.** That is how "shared one file, they can see forty" happens. Per-document grants are slower to manage but cannot over-share by accident.
 - **External sharing and public links.** A link without an account cannot be tied to a person, so it breaks "prove who reached it".
-- **AI suggestions for sharing.** Optional, and I ran out of time to do it safely. My rule would be: the AI only suggests, the owner confirms, and both the suggestion and the decision are audited.
+- **An AI model behind the sharing suggestions.** I built rule-based suggestions instead, so no document details go to an outside service.
 - **Ownership transfer, retention and permanent purge, MFA, antivirus scanning.**
 
 ## How I used AI, and where it was wrong

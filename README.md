@@ -32,7 +32,8 @@ These are public on purpose so you can try every role. They exist only in the de
 | Share, revoke, delete, restore, see who has access | ✗ | **own documents only** | ✗ |
 | See the user directory (to share) | ✓ | ✓ | ✗ |
 | Create users, change roles, deactivate | ✓ (not themselves) | ✗ | ✗ |
-| Audit trail, activity summary, verify chain | ✓ | own documents' activity | ✗ |
+| Audit trail, activity summary, verify chain, CSV export | ✓ | own documents' activity | ✗ |
+| Sharing suggestions (suggest only; owner confirms) | ✗ | own documents | ✗ |
 
 **Permission model in one paragraph:** access is decided per document. The owner is the person who uploaded it.
 They can grant **read** (view and download) or **edit** (also change details and upload new versions) to
@@ -65,14 +66,15 @@ Open **http://localhost:3000** and sign in with a demo account above.
 npm test
 ```
 
-28 tests, covering each `T-xx` case in [THREATS.md](THREATS.md). They run against a fresh in-memory database.
+34 tests, covering each `T-xx` case in [THREATS.md](THREATS.md). They run against a fresh in-memory database.
 
 ```bash
 npm run mutation-check
 ```
 
-Removes 14 authorisation checks one at a time (download, details, edit, delete, share, search filter, upload
-role, deleted documents, read→edit, edit→manage, admin routes, inactive users, CSRF header, file type check)
+Removes 16 authorisation checks one at a time (download, details, edit, delete, share, search filter, upload
+role, deleted documents, read→edit, edit→manage, admin routes, inactive users, CSRF header, file type check,
+CSV formula guard, suggestions owner check)
 and fails if any removal still lets all tests pass. Takes a few minutes.
 
 ### Development mode (hot reload)
@@ -154,4 +156,5 @@ is made again on the server.
 
 See the end of [WRITEUP.md](WRITEUP.md) and the "Accepted" rows in [THREATS.md](THREATS.md). In short: no
 groups or folders (on purpose), no external sharing, no AI sharing suggestions, no ownership transfer, no
-retention or permanent purge, no MFA, and the audit chain's head is not anchored outside the database.
+retention or permanent purge, no MFA. Sharing suggestions are rule-based (no AI model), and anchoring the audit
+chain head outside the system depends on an admin exporting the CSV.

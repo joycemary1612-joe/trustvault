@@ -7,7 +7,7 @@ accepted**. Test names (`T-xx`) match the tests in `server/test/`. Run them with
 [`server/src/authz.js`](server/src/authz.js) before touching the document. It reads the owner and the grant
 from the database on **every** request. Nothing is cached, and there are no tokens or signed URLs to revoke.
 
-**Proving the tests test something:** `npm run mutation-check` removes 14 different authorisation checks one at
+**Proving the tests test something:** `npm run mutation-check` removes 16 different authorisation checks one at
 a time and confirms at least one test fails for each. (It also checks that the untouched code passes first;
 see PROMPTS.md entry 1 for why.)
 
@@ -79,10 +79,21 @@ think that is the right trade for confidential documents.
 | E3 | **Action happens but the audit write fails.** | The audit write is awaited inside the request; if it fails, the request fails with 500. The download is logged **before** the bytes are sent. | n/a | Partial: for metadata edits the change is committed before the audit row, so a crash exactly between them could lose that one row. Same-transaction auditing is future work. |
 | E4 | **Someone edits or deletes audit rows through the app or SQL.** | No route updates or deletes audit rows. A database trigger rejects `UPDATE`, `DELETE` and `TRUNCATE` on `audit_log`. | T-23 | Closed |
 | E5 | **A database owner disables the trigger** and rewrites a row. | Each row stores `HMAC(key, previous hash + payload)`. The key is only in the app's environment, not in the database, so someone with database access alone cannot produce valid hashes. Admin → "Verify audit trail" walks the whole chain. | T-24 | Closed |
-| E6 | **Cutting off the end of the log** (deleting the newest rows). | The remaining chain still verifies, so this is **not** detectable by the chain alone. The admin page shows the current chain head so it can be written down elsewhere. | n/a | Partial / accepted: real fix is to anchor the head hash somewhere outside (e.g. a daily email or a write-once bucket). Not built. |
+| E6 | **Cutting off the end of the log** (deleting the newest rows). | The remaining chain still verifies, so the chain alone cannot show it. Admin → **Export CSV** downloads the whole trail with every hash; the last hash (also in the `X-Audit-Chain-Head` header) is the chain head. If rows are later cut off, a head from an older export will no longer be found in the live chain. | T-44 | Partial: only as good as how often someone exports and keeps the file outside. Automatic anchoring (e.g. a daily email) is not built. |
+| E10 | **CSV / formula injection:** an attacker signs in with an "email" like `=HYPERLINK(...)`; it lands in the audit trail and runs when an admin opens the export in Excel. | Any cell starting with `= + - @`, tab or carriage return gets a leading apostrophe; all cells are CSV-quoted. | T-44 | Closed |
 | E7 | **Attacker with both the database and the app's environment** (the HMAC key). | Could rebuild the whole chain. | n/a | Accepted: that is full server compromise; out of scope for this build. |
 | E9 | **Wrong or forged IP in the record.** Behind Render's proxies `req.ip` is an internal `10.x` address, so "who reached it" loses the network location; and trusting `X-Forwarded-For` blindly lets an attacker write any IP they like. | The app uses `CF-Connecting-IP`, which Render's Cloudflare edge sets to the real visitor IP and overwrites if a client sends it, but **only** when `CLIENT_IP_HEADER` is configured for that deployment. Without it, the header is ignored. The same IP feeds the login rate limits. | T-38 | Partial: relies on all traffic passing through Render's edge (true on Render). Verified on the live site with a spoofed header. |
 | E8 | **Flooding the log** with refused attempts to fill the database. | Login is rate-limited. | n/a | Accepted: refused document requests from a logged-in user are not rate-limited and each one writes a row. |
+
+## H. Sharing suggestions (the "AI fits here" part)
+
+| # | Threat | What I did | Test | Status |
+|---|---|---|---|---|
+| H1 | **The machine widens access on its own.** | The suggestion route only reads. A grant still needs the owner to call the normal grant route (button click). Suggestions always propose **read**, the least access. | T-40 | Closed |
+| H2 | **No record of what was suggested vs. what a person decided.** | `sharing.suggest` records each suggestion with its reason; the grant records `viaSuggestion: true`; a dismissal records `sharing.suggestion_dismissed`. | T-41 | Closed |
+| H3 | **Suggestions leak who other owners share with.** | Only the caller's **own** documents' grants are used. | T-43 | Closed |
+| H4 | **Someone other than the owner asks for suggestions** (learns who the owner shares with). | `manage` access required, same as the sharing panel. | T-42 | Closed |
+| H5 | **Bad suggestion accepted without thought.** | Each suggestion shows its reason; the default is view-only. | n/a | Accepted: a person still decides. Suggestions are rule-based, not an AI model; no document content is sent anywhere. |
 
 ## F. Malicious files and content
 
@@ -119,7 +130,8 @@ think that is the right trade for confidential documents.
 - **Groups.** Same reason: membership changes would silently widen access. A clear next step if done with an audit entry for every membership change.
 - **Sharing with people outside the company / public links.** A link that works without an account cannot be
   tied to a person, which breaks "prove who reached it". If built, it would be a time-limited guest account.
-- **AI suggestions for who should see a document.** Optional in the brief. I did not have time to build it
-  safely; the rule would be that the AI only *suggests*, the owner confirms, and both are audited.
+- **An AI model for sharing suggestions.** I built *rule-based* suggestions instead (section H): they follow the
+  brief's rule (suggest only, a person confirms, both audited) without sending document names or contents to an
+  outside AI service.
 - **Ownership transfer, retention rules, permanent purge, MFA, antivirus scanning, external anchoring of the
   audit head.** Listed above where they matter.

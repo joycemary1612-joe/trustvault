@@ -46,9 +46,11 @@ Roles never grant document access. Every refusal is written to the audit trail.
 | `DELETE /documents/:id` | `manage` | — | moves to the owner's trash; grantees lose access at once |
 | `POST /documents/:id/restore` | `manage` (works on deleted documents) | — | `200` |
 | `GET /documents/:id/grants` | `manage` | — | who has access, with permission |
-| `PUT /documents/:id/grants/:userId` | `manage` | `{ permission: "read" \| "edit" }` | grant or change; target must be an active user other than the owner |
+| `PUT /documents/:id/grants/:userId` | `manage` | `{ permission: "read" \| "edit", viaSuggestion?: true }` | grant or change; target must be an active user other than the owner. `viaSuggestion` only marks the audit entry |
 | `DELETE /documents/:id/grants/:userId` | `manage` | — | revoke; effective on the user's next request |
 | `GET /documents/:id/activity` | `manage` | — | this document's audit entries, including refused attempts |
+| `GET /documents/:id/suggestions` | `manage` | — | up to 5 people the owner already shared other documents with (same category first), each with a reason and `permission: "read"`. **Read-only: never creates a grant.** Audited as `sharing.suggest` |
+| `POST /documents/:id/suggestions/dismiss` | `manage` | `{ userId }` | records that the owner rejected a suggestion (`sharing.suggestion_dismissed`) |
 
 Categories: `HR`, `Contracts`, `Finance`, `Legal`, `Engineering`, `Audit`, `Other`.
 
@@ -69,6 +71,7 @@ All require role **admin**. None of them return document contents.
 | `PATCH /admin/users/:id` | `{ role?, isActive? }` | not allowed on yourself; deactivating deletes all of that user's sessions |
 | `GET /admin/audit` | `action` (prefix, e.g. `permission.`), `outcome` (`allowed`/`denied`), `actor` (email contains), `documentId`, `from`, `to` | latest 300 matching entries |
 | `GET /admin/audit/verify` | — | `{ ok, count, head }` or `{ ok: false, brokenAt, reason }` |
+| `GET /admin/audit/export` | — | the whole audit trail as CSV (attachment) with `prev_hash` and `hash`; header `X-Audit-Chain-Head`. Cells that a spreadsheet would run as formulas are prefixed with `'` |
 | `GET /admin/summary` | — | counts, top refused actors (7 days), recent permission changes |
 
 ## Health
@@ -81,5 +84,5 @@ All require role **admin**. None of them return document contents.
 
 `auth.login`, `auth.logout`, `auth.password_change`, `document.upload`, `document.view`, `document.download`,
 `document.update`, `document.new_version`, `document.delete`, `document.restore`, `permission.grant`,
-`permission.revoke`, `user.create`, `user.update`, `audit.verify`, and refusals recorded as
+`permission.revoke`, `sharing.suggest`, `sharing.suggestion_dismissed`, `user.create`, `user.update`, `audit.verify`, `audit.export`, and refusals recorded as
 `document.read` / `document.edit` / `document.manage` with outcome `denied`.

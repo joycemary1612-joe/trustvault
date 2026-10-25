@@ -127,6 +127,29 @@ limiters use `req.clientIp`. Test T-38 checks both cases; on the live site I sen
 what the audit row recorded.
 Commit: [9371068](https://github.com/joycemary1612-joe/trustvault/commit/9371068)
 
+## Entry 7 (25 Oct 2026): a CSV-injection test that could not fail, and mutations that could not apply (audit trail)
+
+**What I asked:** "Add an audit CSV export for admins, protected against spreadsheet formula injection, with a test.
+Then add both checks to the mutation script."
+
+**What it produced:** A `csvCell()` guard, test T-44 that put `=HYPERLINK(...)` into a rejected upload's
+**filename**, and two new entries in `mutation-check.mjs`.
+
+**What was wrong:** Three things, all of the "looks tested, isn't" kind:
+1. The filename is stored inside the JSON `details` column, and that cell starts with `{`. So the export never
+   had a cell starting with `=`, and the test passed **with or without** the guard. I caught it by asking "what
+   would this test do if `csvCell` were deleted?"
+2. The mutation for the guard was written as `"...[=+\-@\t\r]..."` in a normal JS string, so `\t` and `\r` became
+   real tab and carriage-return characters and the mutation could never match the source.
+3. The mutation for the suggestions route had a raw line break inside a string, so the whole script crashed with a
+   syntax error.
+
+**What I did instead:** The test now signs in with the **email** `=HYPERLINK(...)`. Emails get their own column,
+so the guard matters, and the test checks the exported cell starts with `'=`. The mutation uses `String.raw`. Before
+running, I printed "applies / MISSING" for every mutation against the real source (all 16 apply), then ran the
+full check.
+Commit: _(this entry's commit: "Sharing suggestions and audit CSV export")_
+
 ---
 
 _More entries are added below as I review the code._

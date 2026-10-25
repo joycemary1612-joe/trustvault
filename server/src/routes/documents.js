@@ -219,7 +219,9 @@ export default function documentRoutes(db) {
        ON CONFLICT (document_id, user_id) DO UPDATE SET permission = EXCLUDED.permission,
          granted_by = EXCLUDED.granted_by, created_at = now()`,
       [req.params.id, userId, permission, req.user.id]);
-    await audit(db, req, { action: 'permission.grant', documentId: req.params.id, targetUserId: userId, details: { permission, previous } });
+    // viaSuggestion records that a person accepted a suggestion; it changes nothing else.
+    const viaSuggestion = req.body?.viaSuggestion === true;
+    await audit(db, req, { action: 'permission.grant', documentId: req.params.id, targetUserId: userId, details: { permission, previous, viaSuggestion } });
     res.json({ ok: true });
   }));
 
@@ -232,6 +234,53 @@ export default function documentRoutes(db) {
     if (!rows[0]) throw new HttpError(404, 'Grant not found.');
     // No caches or tokens exist, so the very next request from that user is refused.
     await audit(db, req, { action: 'permission.revoke', documentId: req.params.id, targetUserId: userId, details: { previous: rows[0].permission } });
+    res.json({ ok: true });
+  }));
+
+  // ---- Sharing suggestions, for the owner only. ----
+  // Rule-based: people this owner already shared other documents with, same
+  // category first. This route only READS. It never creates a grant; the owner
+  // must confirm with the normal grant route. Both the suggestion and the
+  // owner's decision (share or dismiss) are written to the audit trail.
+  r.get('/:id/suggestions', wrap(async (req, res) => {
+    await authorizeDocument(db, req, req.params.id, 'manage');
+    const { category } = (await db.query('SELECT category FROM documents WHERE id = $1', [req.params.id])).rows[0];
+    const { rows } = await db.query(
+      `SELECT u.id, u.name, u.email,
+              count(*)::int AS shared_count,
+              count(*) FILTER (WHERE d.category = $3)::int AS same_category
+         FROM grants g
+         JOIN documents d ON d.id = g.document_id AND d.owner_id = $2 AND d.deleted_at IS NULL AND d.id <> $1
+         JOIN users u ON u.id = g.user_id AND u.is_active
+        WHERE NOT EXISTS (SELECT 1 FROM grants g2 WHERE g2.document_id = $1 AND g2.user_id = u.id)
+        GROUP BY u.id, u.name, u.email
+        ORDER BY same_category DESC, shared_count DESC, u.name
+        LIMIT 5`,
+      [req.params.id, req.user.id, category]);
+    const suggestions = rows.map((s) => ({
+      userId: s.id,
+      name: s.name,
+      email: s.email,
+      permission: 'read', // always suggest the least access; the owner can choose more
+      reason: s.same_category > 0
+        ? `You shared ${s.same_category} other ${category} document${s.same_category > 1 ? 's' : ''} with them`
+        : `You shared ${s.shared_count} other document${s.shared_count > 1 ? 's' : ''} with them`,
+    }));
+    if (suggestions.length) {
+      await audit(db, req, {
+        action: 'sharing.suggest',
+        documentId: req.params.id,
+        details: { suggested: suggestions.map((s) => ({ userId: s.userId, permission: s.permission, reason: s.reason })) },
+      });
+    }
+    res.json({ suggestions });
+  }));
+
+  r.post('/:id/suggestions/dismiss', wrap(async (req, res) => {
+    await authorizeDocument(db, req, req.params.id, 'manage');
+    const userId = req.body?.userId;
+    if (!isUuid(userId)) throw new HttpError(400, 'userId is not valid.');
+    await audit(db, req, { action: 'sharing.suggestion_dismissed', documentId: req.params.id, targetUserId: userId });
     res.json({ ok: true });
   }));
 

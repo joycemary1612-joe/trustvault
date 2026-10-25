@@ -60,7 +60,11 @@ function Overview() {
             <div className="card-head"><h2>Audit integrity</h2></div>
             <div className="card-body">
               <p className="muted">Recomputes the HMAC chain over every audit row. Any edited, removed or reordered row breaks it.</p>
-              <button className="btn btn-cta" style={{ marginTop: 12 }} onClick={check} disabled={verify?.busy}><Icon name="shield" size={16} /> Verify audit trail</button>
+              <div className="btn-row" style={{ marginTop: 12 }}>
+                <button className="btn btn-cta" onClick={check} disabled={verify?.busy}><Icon name="shield" size={16} /> Verify audit trail</button>
+                <a className="btn" href="/api/admin/audit/export"><Icon name="download" size={16} /> Export CSV</a>
+              </div>
+              <p className="small muted" style={{ marginTop: 8 }}>Keep exports outside TrustVault: if newer rows are ever cut off, the chain head in an old export will no longer match.</p>
               {verify && !verify.busy && (verify.ok
                 ? <div style={{ marginTop: 12 }}><Alert kind="positive">Intact: {verify.count} entries verified.</Alert><div className="mono muted" style={{ overflowWrap: 'anywhere' }}>Chain head: {verify.head}</div></div>
                 : <div style={{ marginTop: 12 }}><Alert>Broken at entry {verify.brokenAt}: {verify.reason}</Alert></div>)}

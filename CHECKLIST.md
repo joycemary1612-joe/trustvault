@@ -18,7 +18,7 @@ _Last updated: 25 Oct 2026, 2:15 PM IST. Deadline: 6:00 PM IST._
 | 7 | Search by name, owner, category and date | ✅ | Filter bar; T-04 |
 | 8 | Validation of what is uploaded | ✅ | Allow-list + file bytes + 5 MB + safe filename; T-30 to T-32 |
 | 9 | Admin view of document activity and permission changes | ✅ | Admin → Overview, Audit trail, Users |
-| 10 | Automated tests that one user cannot reach another's documents | ✅ | 29 tests; `npm run mutation-check` catches all 14 removed checks |
+| 10 | Automated tests that one user cannot reach another's documents | ✅ | 34 tests; `npm run mutation-check` catches all 16 removed checks |
 
 ## 2. The three standards ("not negotiable")
 
@@ -37,7 +37,7 @@ _Last updated: 25 Oct 2026, 2:15 PM IST. Deadline: 6:00 PM IST._
 | `THREATS.md`: threats, what was done, what was accepted and why | ✅ | 40+ entries in 7 groups, each with status and test |
 | `PROMPTS.md`: ≥ 5 dated entries, ≥ 2 on authorisation/access/audit, with commit links | ✅ | 6 entries, 4 on auth/access/audit, all linked |
 | `PROMPTS.md`: reused prompts / context files | ✅ | "Reused context / instructions" section |
-| Automated tests, including cross-user access | ✅ | `npm test` (29) |
+| Automated tests, including cross-user access | ✅ | `npm test` (34) |
 | Database schema and setup scripts | ✅ | `server/src/schema.sql`, `npm run db:setup --prefix server` |
 | Deployment instructions that work from a clean clone | ✅ | Verified: fresh clone → `npm run build` → `npm test` passes |
 | API documentation with who may call each endpoint | ✅ | `API.md` |
@@ -57,8 +57,8 @@ _Last updated: 25 Oct 2026, 2:15 PM IST. Deadline: 6:00 PM IST._
 | Versions | Built: every new upload is a version, old ones downloadable | ✅ |
 | Deletion and recovery | Soft delete to owner's trash, restore | ✅ |
 | Retention / permanent purge | Not built | ❌ |
-| What the admin sees, what is worth noticing | Refused attempts (24h + top 7 days), downloads, recent permission changes, chain check | ✅ |
-| AI inside the product (optional): suggests, never widens access alone, both audited | Not built | ❌ optional |
+| What the admin sees, what is worth noticing | Refused attempts (24h + top 7 days), downloads, recent permission changes, chain check, CSV export | ✅ |
+| AI inside the product (optional): suggests, never widens access alone, both audited | Rule-based sharing suggestions: suggest only, owner confirms, suggestion + decision audited (T-40 to T-43) | ✅ (no AI model) |
 | What we chose not to build, and why | Listed in THREATS.md and WRITEUP.md | ✅ |
 
 ## 5. Do's

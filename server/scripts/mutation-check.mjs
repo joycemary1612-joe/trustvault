@@ -20,6 +20,8 @@ const MUTATIONS = [
   ['src/session.js', 'AND u.is_active', '', 'deactivated users keep their sessions'],
   ['src/session.js', "if (req.get('X-Requested-With') !== 'TrustVault')", 'if (false)', 'CSRF header not required'],
   ['src/files.js', 'if (!type.check(file.buffer))', 'if (false)', 'file content not checked'],
+  ['src/routes/admin.js', String.raw`if (/^[=+\-@\t\r]/.test(s)) s = ` + "`'${s}`;", '', 'CSV export does not defuse formulas'],
+  ['src/routes/documents.js', "r.get('/:id/suggestions', wrap(async (req, res) => {\n    await authorizeDocument(db, req, req.params.id, 'manage');", "r.get('/:id/suggestions', wrap(async (req, res) => {", 'suggestions skip the owner check'],
 ];
 
 const TEST_ARGS = ['--test', '--test-reporter=tap', '--test-concurrency=1', 'test/**/*.test.js'];

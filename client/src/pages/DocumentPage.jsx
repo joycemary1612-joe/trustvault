@@ -136,6 +136,7 @@ function Sharing({ id, onChange }) {
       <div className="card-head"><h2>Who has access</h2><Badge tone="informative">{grants.length + 1} people</Badge></div>
       <div className="card-body">
         <Alert>{error}</Alert>
+        <Suggestions id={id} onShared={(name) => { onChange(`Shared with ${name} (view only).`); load(); }} onError={setError} />
         <div className="form-grid">
           <Field label="Share with a named person">
             <select value={who} onChange={(e) => setWho(e.target.value)}>
@@ -170,6 +171,42 @@ function Sharing({ id, onChange }) {
         </div>
         <p className="small muted" style={{ marginTop: 12 }}>Editors can change the file but cannot share it or delete it.</p>
       </div>
+    </div>
+  );
+}
+
+// Suggestions only propose. Nothing is shared until the owner clicks Share,
+// and the server records both the suggestion and the decision.
+function Suggestions({ id, onShared, onError }) {
+  const [items, setItems] = useState([]);
+  useEffect(() => {
+    api.get(`/api/documents/${id}/suggestions`).then((d) => setItems(d.suggestions)).catch(() => {});
+  }, [id]);
+  if (items.length === 0) return null;
+
+  const remove = (userId) => setItems((list) => list.filter((s) => s.userId !== userId));
+  const share = async (s) => {
+    try {
+      await api.put(`/api/documents/${id}/grants/${s.userId}`, { permission: s.permission, viaSuggestion: true });
+      remove(s.userId);
+      onShared(s.name);
+    } catch (err) { onError(err.message); }
+  };
+  const dismiss = async (s) => {
+    try { await api.post(`/api/documents/${id}/suggestions/dismiss`, { userId: s.userId }); remove(s.userId); } catch (err) { onError(err.message); }
+  };
+
+  return (
+    <div className="ai-note" style={{ marginTop: 0, marginBottom: 16 }}>
+      <h3 style={{ fontSize: 13 }}>Suggested people</h3>
+      {items.map((s) => (
+        <div className="list-row" key={s.userId}>
+          <div className="grow"><b>{s.name}</b><div className="small muted">{s.reason}</div></div>
+          <button className="btn btn-sm" onClick={() => share(s)}>Share (view)</button>
+          <button className="btn btn-sm btn-quiet" onClick={() => dismiss(s)}>Dismiss</button>
+        </div>
+      ))}
+      <p className="small muted" style={{ marginTop: 6 }}>Based on who you shared with before. Nothing is shared until you click Share; suggestions and your choice are recorded in the audit trail.</p>
     </div>
   );
 }

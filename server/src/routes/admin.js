@@ -6,6 +6,19 @@ import { HttpError, wrap } from '../errors.js';
 import { destroyAllSessions, requireRole } from '../session.js';
 import { ROLES, likePattern, oneOf, optionalDate, optionalStr, str, validateEmail, validatePassword } from '../validate.js';
 
+/**
+ * One CSV cell. Values a spreadsheet would run as a formula (=, +, -, @, tab,
+ * carriage return at the start) get a leading apostrophe. An attacker controls
+ * some audit text (e.g. the filename of a rejected upload), and opening the
+ * export must not execute it.
+ */
+function csvCell(value) {
+  if (value === null || value === undefined) return '';
+  let s = value instanceof Date ? value.toISOString() : String(value);
+  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
 // Administrators manage people and watch activity.
 // They do NOT get document contents: nothing here reads document_versions.content.
 export default function adminRoutes(db) {
@@ -87,6 +100,31 @@ export default function adminRoutes(db) {
     const result = await verifyChain(db);
     await audit(db, req, { action: 'audit.verify', details: { ok: result.ok, count: result.count } });
     res.json(result);
+  }));
+
+  // Full audit trail as CSV, so it can be kept outside this system. The last
+  // row's hash is the chain head: anyone holding an old export can later check
+  // that the live chain still contains it (detects rows cut off the end).
+  r.get('/audit/export', wrap(async (req, res) => {
+    const { rows } = await db.query(
+      `SELECT id, created_at, actor_email, action, outcome, document_id, target_user_id, ip, details, prev_hash, hash
+         FROM audit_log ORDER BY id ASC`);
+    const head = rows.length ? rows[rows.length - 1].hash : 'GENESIS';
+    await audit(db, req, { action: 'audit.export', details: { rows: rows.length, head } });
+
+    const cols = ['id', 'created_at', 'actor_email', 'action', 'outcome', 'document_id', 'target_user_id', 'ip', 'details', 'prev_hash', 'hash'];
+    const lines = [cols.join(',')];
+    for (const row of rows) {
+      lines.push(cols.map((c) => csvCell(c === 'details' ? JSON.stringify(row[c]) : row[c])).join(','));
+    }
+    const day = new Date().toISOString().slice(0, 10);
+    res.set({
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename="trustvault-audit-${day}.csv"`,
+      'X-Audit-Chain-Head': head,
+      'Cache-Control': 'no-store, private',
+    });
+    res.send(lines.join('\r\n') + '\r\n');
   }));
 
   // What is worth noticing: refused attempts, and who is collecting access.
